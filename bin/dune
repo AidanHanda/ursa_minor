@@ -1,0 +1,6 @@
+(executable
+ (public_name ursa_minor)
+ (name ursa_minor)
+ (libraries core core_unix core_unix.command_unix async ursa_minor)
+ (preprocess (pps ppx_jane))
+)

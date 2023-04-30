@@ -1,0 +1,6 @@
+(library
+ (name ursa_minor)
+ (inline_tests)
+ (libraries core async core_unix jsonaf cohttp-async async_ssl)
+ (preprocess (pps ppx_jane ppx_jsonaf_conv))
+ )
