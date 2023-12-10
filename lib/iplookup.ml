@@ -1,5 +1,6 @@
 open! Core
 open Async
+open Jsonaf.Export
 
 type t = { ip : string } [@@deriving sexp, jsonaf]
 

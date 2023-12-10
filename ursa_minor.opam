@@ -11,7 +11,7 @@ homepage: "https://github.com/aidanhanda/ursa_minor"
 bug-reports: "https://github.com/aidanhanda/ursa_minor/issues"
 depends: [
   "ocaml"
-  "dune" {>= "3.4"}
+  "dune" {>= "3.12"}
   "core"
   "async"
   "core_unix"

@@ -1,5 +1,6 @@
 open! Core
 open Async
+open Jsonaf.Export
 
 type t =
   { apikey : string
@@ -93,7 +94,7 @@ let get_dns_records t ~(zone_info : Zone_info.t) =
     |> List.filter ~f:(fun (k, _) -> String.equal k "result")
     |> List.hd_exn
   in
-  Jsonaf.list_of_jsonaf Dns_record.t_of_jsonaf result
+  Jsonaf.list_exn result |> List.map ~f:Dns_record.t_of_jsonaf
 ;;
 
 let update t ~ip =
