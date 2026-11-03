@@ -17,8 +17,11 @@
           compiler = (oxcaml.packages.${system}.oxcaml.override {
             withMerlin = false;
             withJsoo = false;
-            ocamltest = false;
           }).overrideAttrs (old: {
+            # The bootstrap builds ocamltest even for downstream consumers.
+            # Keep its configure support enabled, but skip the compiler's own
+            # full regression suite. Ursa Minor still runs its tests below.
+            doCheck = false;
             passthru = (old.passthru or { }) // {
               nativeCompilers = true;
             };
