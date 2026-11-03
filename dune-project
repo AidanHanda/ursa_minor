@@ -17,7 +17,7 @@
  (name ursa_minor)
  (synopsis "DNS Updated based on current IP")
  (description "Connects with cloud providers to keep dns records in sync with the current state of the world")
- (depends ocaml dune core async core_unix core_unix.command_unix async_ssl cohttp-async)
+ (depends ocaml dune core async core_unix async_ssl cohttp-async jsonaf ppx_jane ppx_jsonaf_conv)
  (tags
   (topics "to describe" your project)))
 

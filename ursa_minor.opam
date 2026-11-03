@@ -15,9 +15,11 @@ depends: [
   "core"
   "async"
   "core_unix"
-  "core_unix.command_unix"
   "async_ssl"
   "cohttp-async"
+  "jsonaf"
+  "ppx_jane"
+  "ppx_jsonaf_conv"
   "odoc" {with-doc}
 ]
 build: [

@@ -1,0 +1,62 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.system }} / ${{ matrix.compiler }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    # OxCaml compatibility is experimental until its dependency stack is verified.
+    continue-on-error: ${{ matrix.compiler == 'oxcaml' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, ubuntu-24.04]
+        compiler: [default, oxcaml]
+        include:
+          - runner: macos-15
+            system: aarch64-darwin
+          - runner: ubuntu-24.04
+            system: x86_64-linux
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: DeterminateSystems/nix-installer-action@c5a866b6ab867e88becbed4467b93592bce69f8a # v21
+      - uses: nix-community/cache-nix-action@d8cff2f74b9341e0d90fbf3c0c0212a161ceaef6 # v6
+        with:
+          primary-key: nix-${{ matrix.system }}-${{ matrix.compiler }}-${{ hashFiles('flake.lock') }}-${{ github.sha }}
+          restore-prefixes-first-match: nix-${{ matrix.system }}-${{ matrix.compiler }}-${{ hashFiles('flake.lock') }}-
+      - name: Check flake
+        run: |
+          test "$(nix eval --impure --raw --expr builtins.currentSystem)" = '${{ matrix.system }}'
+          nix flake check --no-build
+      - name: Build and test
+        run: nix build '.#${{ matrix.compiler }}' --no-update-lock-file --print-build-logs
+      - name: Smoke test executable
+        run: ./result/bin/ursa_minor -help
+      - name: Package executable and runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact="ursa_minor-${{ matrix.system }}-${{ matrix.compiler }}"
+          mkdir -p dist
+          tar -czf "dist/$artifact.tar.gz" -C result/bin ursa_minor
+          nix-store --export $(nix-store --query --requisites ./result) | gzip > "dist/$artifact.nix-export.gz"
+          nix path-info ./result > dist/store-path.txt
+          (cd dist && shasum -a 256 *.tar.gz *.nix-export.gz > SHA256SUMS)
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ursa_minor-${{ matrix.system }}-${{ matrix.compiler }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
