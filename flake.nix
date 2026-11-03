@@ -40,7 +40,15 @@
               ln -s "$library" "$out/lib/ocaml/${compiler.version}/site-lib/"
             done
           '';
-          oxPackages = (pkgs.ocaml-ng.mkOcamlPackages compiler).overrideScope (_: _: {
+          oxPackages = (pkgs.ocaml-ng.mkOcamlPackages compiler).overrideScope (_: prev: {
+            findlib = prev.findlib.overrideAttrs (old: {
+              postPatch = (old.postPatch or "") + ''
+                # Fix the callback's mode before OxCaml infers it from the
+                # more permissive, local-accepting stdlib implementation.
+                substituteInPlace src/findlib/topfind.ml.in \
+                  --replace-fail 'let log = ref' 'let log : (string -> unit) ref = ref'
+              '';
+            });
             ppxlib = oxPpx;
             ppxlib_jane = oxPpx;
             ocaml-compiler-libs = oxPpx;
